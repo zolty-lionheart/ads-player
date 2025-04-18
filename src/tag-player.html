@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tag player 🚀</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            height: calc(100vh - 20%);
+            /* 留出底部按钮的空间 */
+        }
+
+        /* 测试信息栏 */
+        #infoContainer {
+            flex: 0.8;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border-left: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        /* 视频栏 */
+        #videoContainer {
+            flex: 3;
+            /* 增加视频容器的占比 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 10px;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            /* 增加视频宽度 */
+            max-width: 100%;
+            /* 限制最大宽度 */
+            height: auto;
+            /* 保持视频比例 */
+        }
+
+        /* 标签显示栏 */
+        #listContainer {
+            flex: 1.2;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border-left: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #listContainer ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* 设置为两列 */
+            gap: 4px;
+            /* 减小列间距 */
+        }
+
+        #listContainer li {
+            padding: 2px;
+            font-size: 14px;
+            text-align: left;
+            /* 左对齐文本 */
+            background-color: #ffffff;
+            /* 去掉背景色 */
+            cursor: pointer;
+        }
+
+        #listContainer li:hover {
+            background-color: #f0f0f0;
+            /* 鼠标悬停时的高亮效果 */
+        }
+
+        /* 按钮 */
+        #buttonContainer {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            position: fixed;
+            /* 固定位置 */
+            bottom: 0;
+            /* 锁定到页面底部 */
+            left: 0;
+            height: 30px;
+            max-height: 10%;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            /* 半透明背景 */
+            padding: 8px 0;
+            /* 添加一些内边距 */
+            z-index: 1000;
+            /* 确保在最上层 */
+        }
+
+        .button {
+            width: 60px;
+            height: 30px;
+            max-height: 100%;
+            font-size: 20px;
+            margin: 2px;
+            cursor: pointer;
+            border: 2px solid black;
+            border-radius: 5px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            /* 垂直居中 */
+            justify-content: center;
+            /* 水平居中 */
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .timeline {
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            width: 80%;
+            overflow-y: auto;
+            height: calc(100vh);
+            margin-bottom: 4%;
+            /* 为按钮容器留出空间 */
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            height: 16px;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .timeline-item input[type="text"] {
+            margin-right: 5px;
+            padding: 2px;
+            width: 80px;
+            font-size: 12px;
+        }
+
+        .timeline-item span {
+            padding: 5px;
+            font-size: 12px;
+            margin-right: 5px;
+            width: 30px;
+        }
+
+        .timeline-item select {
+            width: 100px;
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-container">
+        <!-- 测试信息 -->
+        <div id="infoContainer">
+        </div>
+        <!-- 视频容器 -->
+        <div id="videoContainer">
+            <div class="video-wrapper">
+                <video id="videoPlayer" controls style="width: 100%;"></video>
+            </div>
+        </div>
+        <!-- 列表容器 -->
+        <div id="listContainer">
+            <ul id="scenarioList">
+                <!-- 列表项 -->
+                <li>1 左转-无博弈</li>
+                <li>2 左转-同向车辆博弈</li>
+                <li>3 左转-对向转弯车辆博弈</li>
+                <li>4 左转-VRU博弈</li>
+                <li>5 左转-待行区</li>
+                <li>6 直行-无博弈</li>
+                <li>7 直行-有博弈</li>
+                <li>8 直行-待行区</li>
+                <li>9 右转-无博弈</li>
+                <li>10 右转-同向车辆博弈</li>
+                <li>11 右转-对向转弯车辆博弈</li>
+                <li>12 右转-VRU博弈</li>
+                <li>13 环岛-有信号灯</li>
+                <li>14 环岛-无信号灯</li>
+                <li>15 掉头-无博弈</li>
+                <li>16 掉头-有博弈</li>
+                <li>17 车道保持与跟车</li>
+                <li>18 拥堵跟车</li>
+                <li>19 导航变道</li>
+                <li>20 切入避让</li>
+                <li>21 绕行占道车辆与行人</li>
+                <li>22 窄路-绕行同向车辆与VRU</li>
+                <li>23 超越慢车</li>
+                <li>24 对向会车</li>
+                <li>25 窄路-对向车辆与VRU博弈</li>
+                <li>26 窄路-掉头</li>
+                <li>27 出主路进辅路</li>
+                <li>28 出辅路进主路</li>
+                <li>29 城快匝道内分流</li>
+                <li>30 城快匝道内合流</li>
+                <li>31 上匝道汇入城快</li>
+                <li>32 出城快下匝道</li>
+                <li>33 施工区域通行</li>
+                <li>34 左转-对向直行车辆博弈</li>
+                <li>35 学校区域通行</li>
+                <li>36 隧道通行</li>
+                <li>37 收费站通行</li>
+                <li>38 交警-有指挥</li>
+                <li>39 交警-无指挥</li>
+                <li>40 违反交规</li>
+                <li>41 驾驶员紧急干预及接管</li>
+                <li>42 驾驶员主动干预</li>
+                <li>43 系统请求接管</li>
+                <li>44 无效数据</li>
+                <li>45 避让横穿VRU</li>
+                <li>46 复杂狭窄巷道通行</li>
+            </ul>
+        </div>
+    </div>
+
+    <input type="file" id="videoInput" accept="video/*" style="display: none;">
+
+    <div class="timeline" id="timeline">
+        <div id="timelineItems"></div>
+        <div id="buttonContainer">
+            <div id="currentTimeDisplay" style="text-align: center; font-size: 16px; margin-top: 6px; color: #333;">
+                当前时间: 00:00:00
+            </div>
+            <button id="addTimelineItemButton" class="button">➕</button>
+            <button id="importButton" class="button">📥</button>
+            <button id="rewindButton" class="button">⏪</button>
+            <button id="playAllButton" class="button">▶️</button>
+            <button id="pauseAllButton" class="button">⏸️</button>
+            <button id="fastForwardButton" class="button">⏩</button>
+            <button id="fastForward5Button" class="button">⏩5</button>
+            <button id="exportButton" class="button">📤</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPausedTime = 0;
+        let timelineItemCounter = 0; // 初始化计数器，从 0 开始
+
+        // 确保正确获取视频和时间显示元素
+        // 定义一个函数，用于实时更新时间
+        function updateCurrentTime() {
+            const video = document.querySelector('#videoContainer video');
+            const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+            const currentTime = formatTime(video.currentTime); // 格式化当前时间
+            currentTimeDisplay.textContent = `当前时间: ${currentTime}`; // 更新显示内容
+            console.log(`当前时间: ${currentTime}`); // 控制台输出当前时间
+        }
+
+        // 每秒更新一次时间
+        setInterval(updateCurrentTime, 200);
+
+        // 时间格式化函数
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        // 视频导入
+        document.getElementById('importButton').addEventListener('click', function () {
+            document.getElementById('videoInput').click();
+        });
+
+        document.getElementById('videoInput').addEventListener('change', function (event) {
+            const files = event.target.files;
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = ''; // Clear existing videos
+
+            if (files.length > 0) {
+                const file = files[0];
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+
+                const video = document.createElement('video');
+                video.controls = true;
+                video.src = URL.createObjectURL(file);
+                video.style.width = '100%';
+                videoWrapper.appendChild(video);
+
+                video.onpause = function () {
+                    currentPausedTime = video.currentTime;
+                };
+
+                videoContainer.appendChild(videoWrapper);
+            }
+        });
+
+        document.getElementById('playAllButton').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video) {
+                video.play();
+            }
+        });
+
+        document.getElementById('pauseAllButton').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video) {
+                video.pause();
+            }
+        });
+
+        let isStartTimeSet = false;
+        let lastStartTimeInput = null;
+
+        document.getElementById('addTimelineItemButton').addEventListener('click', function () {
+            const timelineItems = document.getElementById('timelineItems');
+
+            if (!isStartTimeSet) {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item';
+
+                // 添加顺序编号
+                const itemNumber = document.createElement('span');
+                itemNumber.textContent = `${timelineItemCounter}. `;
+                itemNumber.style.marginRight = '10px';
+                timelineItem.appendChild(itemNumber);
+
+                const startTimeInput = document.createElement('input');
+                startTimeInput.type = 'text';
+                startTimeInput.className = 'input';
+                startTimeInput.value = formatTime(currentPausedTime);
+                startTimeInput.placeholder = '开始时间';
+
+                const endTimeInput = document.createElement('input');
+                endTimeInput.type = 'text';
+                endTimeInput.className = 'input';
+                endTimeInput.placeholder = '结束时间';
+
+                const sceneTagInput = document.createElement('input');
+                sceneTagInput.type = 'text';
+                sceneTagInput.className = 'input';
+                sceneTagInput.placeholder = '场景标签';
+                sceneTagInput.id = 'sceneTag';
+
+                const difficultyLabel = document.createElement('span');
+                difficultyLabel.textContent = '难度: ';
+                difficultyLabel.className = 'label';
+                const difficultyTagInput = document.createElement('select');
+                difficultyTagInput.className = 'select';
+
+                const difficultyOptions = ['3', '2', '1'];
+                difficultyOptions.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    difficultyTagInput.appendChild(option);
+                });
+
+                const anquanTagLabel = document.createElement('span');
+                anquanTagLabel.textContent = '安全: ';
+                anquanTagLabel.className = 'label';
+                const anquanTagInput = document.createElement('select');
+                anquanTagInput.className = 'select';
+                const anquanOptions = ['1', '2', '3'];
+                anquanOptions.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    anquanTagInput.appendChild(option);
+                });
+
+                const xiaolvTagLabel = document.createElement('span');
+                xiaolvTagLabel.textContent = '效率: ';
+                xiaolvTagLabel.className = 'label';
+                const xiaolvTagInput = document.createElement('select');
+                xiaolvTagInput.className = 'select';
+                const xiaolvOptions = ['1', '2', '3'];
+                xiaolvOptions.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    xiaolvTagInput.appendChild(option);
+                });
+
+                const shushiTagLabel = document.createElement('span');
+                shushiTagLabel.textContent = '舒适: ';
+                shushiTagLabel.className = 'label';
+                const shushiTagInput = document.createElement('select');
+                shushiTagInput.className = 'select';
+                const shushiOptions = ['1', '2', '3'];
+                shushiOptions.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    shushiTagInput.appendChild(option);
+                });
+
+                const remarkTagInput = document.createElement('input');
+                remarkTagInput.type = 'text';
+                remarkTagInput.placeholder = '描述';
+
+                // 修改创建元素的代码，给每个输入框/下拉框添加唯一标识
+                startTimeInput.setAttribute('data-role', 'start-time');
+                endTimeInput.setAttribute('data-role', 'end-time');
+                sceneTagInput.setAttribute('data-role', 'scene-tag');
+                difficultyTagInput.setAttribute('data-role', 'difficulty');
+                anquanTagInput.setAttribute('data-role', 'anquan');
+                xiaolvTagInput.setAttribute('data-role', 'xiaolv');
+                shushiTagInput.setAttribute('data-role', 'shushi');
+                remarkTagInput.setAttribute('data-role', 'remark');
+
+                // 将编号和输入框添加到 timelineItem
+
+                timelineItem.appendChild(startTimeInput);
+                timelineItem.appendChild(endTimeInput);
+                timelineItem.appendChild(sceneTagInput);
+                timelineItem.appendChild(difficultyLabel);
+                timelineItem.appendChild(difficultyTagInput);
+                timelineItem.appendChild(anquanTagLabel);
+                timelineItem.appendChild(anquanTagInput);
+                timelineItem.appendChild(xiaolvTagLabel);
+                timelineItem.appendChild(xiaolvTagInput);
+                timelineItem.appendChild(shushiTagLabel);
+                timelineItem.appendChild(shushiTagInput);
+                timelineItem.appendChild(remarkTagInput);
+                timelineItems.appendChild(timelineItem);
+
+                // 自动滚动到新添加的元素
+                timelineItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                isStartTimeSet = true;
+                lastStartTimeInput = endTimeInput;
+
+                timelineItemCounter++; // 增加计数器
+            } else {
+                lastStartTimeInput.value = formatTime(currentPausedTime);
+                isStartTimeSet = false;
+                lastStartTimeInput = null;
+            }
+        });
+
+        // 快进
+        document.getElementById('fastForwardButton').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video) {
+                video.currentTime += 1; // 快进1秒
+            }
+        });
+
+        // 快进5秒
+        document.getElementById('fastForward5Button').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video) {
+                video.currentTime += 5; // 快进1秒
+            }
+        });
+
+        // 后退
+        document.getElementById('rewindButton').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video) {
+                video.currentTime -= 1; // 后退1秒
+            }
+        });
+
+        document.getElementById('exportButton').addEventListener('click', function () {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const timelineData = [];
+
+            timelineItems.forEach((item, index) => {
+                const startTime = item.querySelector('[data-role="start-time"]').value;
+                const endTime = item.querySelector('[data-role="end-time"]').value;
+                const sceneTag = item.querySelector('[data-role="scene-tag"]').value;
+                const difficultyTag = item.querySelector('[data-role="difficulty"]').value;
+                const anquanTag = item.querySelector('[data-role="anquan"]').value;
+                const xiaolvTag = item.querySelector('[data-role="xiaolv"]').value;
+                const shushiTag = item.querySelector('[data-role="shushi"]').value;
+                const remarkTag = item.querySelector('[data-role="remark"]').value;
+                timelineData.push({
+                    number: index, // 编号从 0 开始
+                    startTime,
+                    endTime,
+                    sceneTag,
+                    difficultyTag,
+                    anquanTag,
+                    xiaolvTag,
+                    shushiTag,
+                    remarkTag
+                });
+            });
+
+            let csvContent = "\uFEFF编号,开始时间,结束时间,场景标签,场景难度,安全,效率,舒适,描述\n";
+            timelineData.forEach(row => {
+                csvContent += `${row.number},${row.startTime},${row.endTime},${row.sceneTag},${row.difficultyTag},${row.anquanTag},${row.xiaolvTag},${row.shushiTag},${row.remarkTag}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const fileName = prompt("请输入文件名（不需要扩展名）", "timeline") || "timeline";
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+
+</html>

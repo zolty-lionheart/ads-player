@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Importer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* background-image: url('image/background.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center; */
+            height: 100vh;
+            width: 100vw;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        #buttonContainer {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        #videoContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .video-wrapper {
+            flex: 1 1 30%;
+            max-width: 30%;
+        }
+        .timeline {
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            width: 80%;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .timeline-item input[type="text"] {
+            margin-right: 10px;
+            padding: 5px;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="videoInput" multiple accept="video/*" style="display: none;">
+    <div id="buttonContainer">
+        <button id="importButton" class="button">Import 5 Videos</button>
+        <button id="playAllButton" class="button">Play All Videos</button>
+        <button id="pauseAllButton" class="button">Pause All Videos</button>
+    </div>
+    <div id="videoContainer"></div>
+    <div class="timeline" id="timeline">
+        <h3>Timeline</h3>
+        <button id="addTimelineItemButton" class="button">Add Timeline Item</button>
+        <div id="timelineItems" style="display: flex; flex-direction: column-reverse;"></div>
+    </div>
+
+    <script>
+        let currentPausedTime = 0;
+
+        document.getElementById('importButton').addEventListener('click', function() {
+            document.getElementById('videoInput').click();
+        });
+
+        document.getElementById('videoInput').addEventListener('change', function(event) {
+            const files = event.target.files;
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = ''; // Clear existing videos
+
+            for (let i = 0; i < files.length && i < 5; i++) {
+                const file = files[i];
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+
+                const video = document.createElement('video');
+                video.controls = true;
+                video.src = URL.createObjectURL(file);
+                video.style.width = '100%';
+                videoWrapper.appendChild(video);
+
+                video.onpause = function() {
+                    currentPausedTime = video.currentTime;
+                };
+
+                videoContainer.appendChild(videoWrapper);
+            }
+        });
+
+        document.getElementById('playAllButton').addEventListener('click', function() {
+            const videos = document.querySelectorAll('#videoContainer video');
+            videos.forEach(video => video.play());
+        });
+
+        document.getElementById('pauseAllButton').addEventListener('click', function() {
+            const videos = document.querySelectorAll('#videoContainer video');
+            videos.forEach(video => video.pause());
+        });
+
+        document.getElementById('addTimelineItemButton').addEventListener('click', function() {
+            const timelineItems = document.getElementById('timelineItems');
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+
+            const timeInput = document.createElement('input');
+            timeInput.type = 'text';
+            timeInput.value = formatTime(currentPausedTime);
+
+            const commentInput = document.createElement('input');
+            commentInput.type = 'text';
+            commentInput.placeholder = 'Comment';
+
+            timelineItem.appendChild(timeInput);
+            timelineItem.appendChild(commentInput);
+
+            timelineItems.appendChild(timelineItem);
+        });
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+    </script>
+</body>
+</html>
