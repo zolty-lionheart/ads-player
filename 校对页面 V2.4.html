@@ -501,7 +501,8 @@
                 const startCell = document.createElement('td');
                 startCell.className = 'time-cell';
                 startCell.textContent = formatExcelTime(scene.startTime);
-                startCell.dataset.time = convertToSeconds(scene.startTime);
+                // startCell.dataset.time = convertToSeconds(scene.startTime);
+                startCell.dataset.time = convertToSeconds(startCell.textContent);
                 startCell.title = "点击跳转到场景开始时间";
                 startCell.style.textAlign = 'center';
                 startCell.onclick = function() {
@@ -512,7 +513,8 @@
                 const endCell = document.createElement('td');
                 endCell.className = 'time-cell';
                 endCell.textContent = formatExcelTime(scene.endTime);
-                endCell.dataset.time = convertToSeconds(scene.endTime);
+                // endCell.dataset.time = convertToSeconds(scene.endTime);
+                endCell.dataset.time = convertToSeconds(endCell.textContent);
                 endCell.title = "点击跳转到场景结束时间";
                 endCell.style.textAlign = 'center';
                 endCell.onclick = function() {
@@ -608,7 +610,7 @@
             });
         }
         
-        // 格式化Excel时间（支持日期对象和数字格式）
+        // 格式化Excel时间（支持日期对象、数字格式和字符串格式）
         function formatExcelTime(time) {
             if (time instanceof Date) {
                 // 处理日期对象
@@ -623,18 +625,29 @@
                 const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
                 const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
                 return `${hours}:${minutes}:${seconds}`;
+            } else if (typeof time === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(time)) {
+                // 处理字符串格式的时间（HH:MM:SS）
+                return time;
             }
             return time; // 如果不是时间格式，返回原始值
         }
         
         // 将时间转换为秒数
-        function convertToSeconds(time) {
-            if (time instanceof Date) {
-                return time.getHours() * 3600 + time.getMinutes() * 60 + time.getSeconds();
-            } else if (typeof time === 'number') {
-                return time * 86400; // Excel时间格式，1 = 24小时
+        // function convertToSeconds(time) {
+        //     if (time instanceof Date) {
+        //         return time.getHours() * 3600 + time.getMinutes() * 60 + time.getSeconds();
+        //     } else if (typeof time === 'number') {
+        //         return time * 86400; // Excel时间格式，1 = 24小时
+        //     }
+        //     return 0;
+        // }
+
+        function convertToSeconds(timeString) {
+            if (typeof timeString === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
+                const [hours, minutes, seconds] = timeString.split(':').map(Number);
+                return hours * 3600 + minutes * 60 + seconds;
             }
-            return 0;
+            return 0; // 如果格式不正确，返回0
         }
         
         // 格式化时间为HH:MM:SS
