@@ -467,7 +467,7 @@
                     startTime: '场景开始时间戳' in row ? row['场景开始时间戳'] : row['开始时间'] || '',
                     endTime: '场景结束时间戳' in row ? row['场景结束时间戳'] : row['结束时间'] || '',
                     label: '场景标签号' in row ? row['场景标签号'] : row['场景标签'] || '',
-                    difficulty: '场景难易程度' in row ? row['场景难易程度'] : row['难度'] || '',
+                    difficulty: '场景难易程度' in row ? row['场景难易程度'] : ('场景难度' in row ? row['场景难度'] : row['难度'] || ''),
                     remark: '异常情况备注' in row ? row['异常情况备注'] : row['描述'] || '',
                     anquan: nrhOption ? '' : ('安全性得分' in row ? row['安全性得分'] : row['安全'] || ''),
                     xiaolv: nrhOption ? '' : ('效率性得分' in row ? row['效率性得分'] : row['效率'] || ''),
