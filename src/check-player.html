@@ -469,9 +469,9 @@
                     label: '场景标签号' in row ? row['场景标签号'] : row['场景标签'] || '',
                     difficulty: '场景难易程度' in row ? row['场景难易程度'] : ('场景难度' in row ? row['场景难度'] : row['难度'] || ''),
                     remark: '异常情况备注' in row ? row['异常情况备注'] : row['描述'] || '',
-                    anquan: '安全性得分' in row ? row['安全性得分'] : row['安全'],
-                    xiaolv: '效率性得分' in row ? row['效率性得分'] : row['效率'],
-                    shushi: '舒适性得分' in row ? row['舒适性得分'] : row['舒适'],
+                    anquan: nrhOption ? '' : ('安全性得分' in row ? row['安全性得分'] : row['安全'] || ''),
+                    xiaolv: nrhOption ? '' : ('效率性得分' in row ? row['效率性得分'] : row['效率'] || ''),
+                    shushi: nrhOption ? '' : ('舒适性得分' in row ? row['舒适性得分'] : row['舒适'] || ''),
                     nrhremark: '拟人化异常情况备注' in row ? row['拟人化异常情况备注'] : row['拟人化情况备注'] || ''
                 });
             });
@@ -625,9 +625,14 @@
                 const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
                 const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
                 return `${hours}:${minutes}:${seconds}`;
-            } else if (typeof time === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(time)) {
-                // 处理字符串格式的时间（HH:MM:SS）
-                return time;
+            } else if (typeof time === 'string' && /^\d{1,2}:\d{2}:\d{2}$/.test(time)) {
+                // 处理字符串格式的时间（H:MM:SS 或 HH:MM:SS）
+                const parts = time.split(':');
+                if (parts[0].length === 1) {
+                    // 如果小时部分是单个数字，补齐为两位
+                    parts[0] = parts[0].padStart(2, '0');
+                }
+                return parts.join(':');
             }
             return time; // 如果不是时间格式，返回原始值
         }
