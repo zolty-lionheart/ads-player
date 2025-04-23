@@ -408,8 +408,8 @@
             // 查找当前时间所在的场景
             for (let i = 0; i < sceneData.length; i++) {
                 const scene = sceneData[i];
-                const startTime = convertToSeconds(scene.startTime);
-                const endTime = convertToSeconds(scene.endTime);
+                const startTime = convertToSeconds(formatExcelTime(scene.startTime));
+                const endTime = convertToSeconds(formatExcelTime(scene.endTime));
                 
                 if (currentTime >= startTime && currentTime <= endTime) {
                     currentSceneIndex = i;
