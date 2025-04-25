@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>场景校对评估系统</title>
+    <title>场景校对</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
@@ -21,7 +21,7 @@
             padding: 10px;
             border-radius: 5px;
             height: 30px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             flex-grow: 0;
             display: flex;
             align-items: center;
@@ -34,7 +34,7 @@
             display: flex;
             gap: 15px;
             flex-wrap: nowrap;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             flex-grow: 0;
         }
         .control-group {
@@ -172,16 +172,26 @@
             bottom: 0;
             /* 锁定到页面底部 */
             left: 0;
-            height: 30px;
+            height: 24px;
             max-height: 10%;
             width: 100%;
-            padding: 8px 0;
+            padding: 0 0 8px 0;
             gap: 5px;
+        }
+        .currenttext {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            height: 24px;
+            font-size: 18px;
+            color: #333;
         }
         #currentTimeDisplay{
             display: flex;
             width: 160px;
-            height: 30px;
+            height: 24px;
             font-size: 18px;
             color: #333;
             align-items: center;
@@ -189,7 +199,7 @@
         }
         .controlbutton {
             width: 30px;
-            height: 30px;
+            height: 24px;
             font-size: 24px;
             cursor: pointer;
             background-color: white;
@@ -198,7 +208,7 @@
             justify-content: center; /* 水平居中 */
         }
         button {
-            padding: 8px 15px;
+            padding: 5px 10px;
             background-color: #3498db;
             color: white;
             border: none;
@@ -227,7 +237,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>场景评估</h1>
+        <h1>汇总用改版</h1>
     </div>
     
     <div class="controls">
@@ -241,9 +251,9 @@
         </div>
         <!-- <div class="control-group">
             <label for="nrhoption">导入拟人化</label>
-            <input type="radio" id="optionNo" name="importData" value="no" checked>
+            <input type="radio" id="optionNo" name="importData" value="no" >
             <label for="optionNoNo">否</label>
-            <input type="radio" id="optionYes" name="importData" value="yes">
+            <input type="radio" id="optionYes" name="importData" value="yes" checked>
             <label for="optionYes">是</label>
         </div> -->
         <button id="exportButton">导出文件</button>
@@ -294,6 +304,7 @@
                     您的浏览器不支持视频播放
                 </video>
             </div>
+            <div class="currenttext" id="currentLabel">当前标签</div>
             <div id="buttonContainer">
                 <div id="currentTimeDisplay">当前时间: 00:00:00</div>
                 <button id="rewindButton" class="controlbutton">⏪</button>
@@ -312,6 +323,7 @@
         const statusElement = document.getElementById('status');
         const videoStatusElement = document.getElementById('videoStatus');
         const currentTimeElement = document.getElementById('currentTime');
+        const currentLable = document.getElementById('currentLabel');
         const playButton =document.getElementById('playButton');
         
         // 存储Excel数据
@@ -430,28 +442,88 @@
                     rows[lastHighlightedRow].classList.remove('highlight');
                 }
             }
-            
+
             // 添加新的高亮
             if (rowIndex >= 0) {
                 const rows = document.querySelectorAll('#dataBody tr');
                 if (rowIndex < rows.length) {
-                    rows[rowIndex].classList.add('highlight');
-                    
+                    const currentRow = rows[rowIndex];
+                    currentRow.classList.add('highlight');
+
+                    // 获取当前行的 labelInput
+                    const labelInput = currentRow.querySelector('textarea');
+                    console.log(`当前行的标签: ${sceneData[rowIndex].label}`);
+                    if (sceneData[rowIndex].label) {
+                        const labelMapping = {
+                            1: "左转-无博弈",
+                            2: "左转-同向车辆博弈",
+                            3: "左转-对向转弯车辆博弈",
+                            4: "左转-VRU博弈",
+                            5: "左转-待行区",
+                            6: "直行-无博弈",
+                            7: "直行-有博弈",
+                            8: "直行-待行区",
+                            9: "右转-无博弈",
+                            10: "右转-同向车辆博弈",
+                            11: "右转-对向转弯车辆博弈",
+                            12: "右转-VRU博弈",
+                            13: "环岛-有信号灯",
+                            14: "环岛-无信号灯",
+                            15: "掉头-无博弈",
+                            16: "掉头-有博弈",
+                            17: "车道保持与跟车",
+                            18: "拥堵跟车",
+                            19: "导航变道",
+                            20: "切入避让",
+                            21: "绕行占道车辆与行人",
+                            22: "窄路-绕行同向车辆与VRU",
+                            23: "超越慢车",
+                            24: "对向会车",
+                            25: "窄路-对向车辆与VRU博弈",
+                            26: "窄路-掉头",
+                            27: "出主路进辅路",
+                            28: "出辅路进主路",
+                            29: "城快匝道内分流",
+                            30: "城快匝道内合流",
+                            31: "上匝道汇入城快",
+                            32: "出城快下匝道",
+                            33: "施工区域通行",
+                            34: "左转-对向直行车辆博弈",
+                            35: "学校区域通行",
+                            36: "隧道通行",
+                            37: "收费站通行",
+                            38: "交警-有指挥",
+                            39: "交警-无指挥",
+                            40: "违反交规",
+                            41: "驾驶员紧急干预及接管",
+                            42: "驾驶员主动干预",
+                            43: "系统请求接管",
+                            44: "无效数据",
+                            45: "避让横穿VRU",
+                            46: "复杂狭窄巷道通行"
+                        };
+
+                        // 替换 labelInput 的内容
+                        const updateLabel = ((String(sceneData[rowIndex].label)).replace(/ /g, '，') || '').replace(/\b\d+\b/g, match => labelMapping[match] || match);
+                        console.log(`当前行的标签: ${updateLabel}`);
+                        currentLable.textContent = `${updateLabel}`;
+                    }
+
                     // 如果行不在可视区域内，则滚动到该行
-                    const rowRect = rows[rowIndex].getBoundingClientRect();
+                    const rowRect = currentRow.getBoundingClientRect();
                     const containerRect = document.getElementById('dataContainer').getBoundingClientRect();
-                    
+
                     if (rowRect.bottom > containerRect.bottom || rowRect.top < containerRect.top) {
-                        if (videoPlayer.paused == false) {
-                            rows[rowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if (!videoPlayer.paused) {
+                            currentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }
                     }
                 }
             }
-            
+
             lastHighlightedRow = rowIndex;
         }
-        
+
         // 处理场景数据
         function processSceneData(data) {
             sceneData = [];
@@ -472,7 +544,7 @@
                     anquan: nrhOption ? '' : ('安全性得分' in row ? row['安全性得分'] : row['安全'] || ''),
                     xiaolv: nrhOption ? '' : ('效率性得分' in row ? row['效率性得分'] : row['效率'] || ''),
                     shushi: nrhOption ? '' : ('舒适性得分' in row ? row['舒适性得分'] : row['舒适'] || ''),
-                    nrhremark: '拟人化异常情况备注' in row ? row['拟人化异常情况备注'] : row['拟人化情况备注'] || ''
+                    nrhremark: nrhOption ? '' : ('拟人化异常情况备注' in row ? row['拟人化异常情况备注'] : ('拟人化情况备注' in row ? row['拟人化情况备注'] : row['拟人化描述'] || ''))
                 });
             });
 
@@ -495,7 +567,7 @@
                 numberCell.textContent = scene.number;
                 numberCell.style.textAlign = 'center';
                 sceneCounter = scene.number;
-                console.log(`场景编号: ${sceneCounter}`);
+                // console.log(`场景编号: ${sceneCounter}`);
 
                 // 开始时间
                 const startCell = document.createElement('td');
@@ -612,7 +684,19 @@
         
         // 格式化Excel时间（支持日期对象、数字格式和字符串格式）
         function formatExcelTime(time) {
-            if (time instanceof Date) {
+            if (time instanceof Date && isNaN(time.getTime())) {
+            // 如果是无效的 Date 对象，尝试将其视为 Excel 时间格式的数字
+            const rawValue = time.valueOf(); // 获取原始值
+            //const rawValue = time.v
+            const numericValue = parseFloat(rawValue)
+            const baseDate = new Date(Date.UTC(1899, 11, 30)); // Excel 时间基准日期（UTC 时间）
+            const excelDate = new Date(baseDate.getTime() + numericValue * 86400 * 1000); // 转换为毫秒
+            const hours = excelDate.getUTCHours().toString().padStart(2, '0');
+            const minutes = excelDate.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = excelDate.getUTCSeconds().toString().padStart(2, '0');
+            console.log(`时间格式为: datenumber ${time} ${hours}:${minutes}:${seconds}`);
+            return `${hours}:${minutes}:${seconds}`;
+            } else if (time instanceof Date) {
                 // 处理日期对象
                 const hours = time.getHours().toString().padStart(2, '0');
                 const minutes = time.getMinutes().toString().padStart(2, '0');
@@ -702,19 +786,45 @@
 
             // 创建工作表
             const worksheet = XLSX.utils.json_to_sheet(sceneData.map(scene => ({
-                编号: scene.number,
+                编号: Number(scene.number) || 0,
                 开始时间: scene.startTime,
                 结束时间: scene.endTime,
                 场景标签: scene.label,
-                难度: scene.difficulty,
+                难度: Number(scene.difficulty), // 转为数字
                 异常情况备注: scene.remark,
-                安全: scene.anquan,
-                效率: scene.xiaolv,
-                舒适: scene.shushi,
+                安全: Number(scene.anquan) || 1, // 转为数字
+                效率: Number(scene.xiaolv) || 1, // 转为数字
+                舒适: Number(scene.shushi) || 1, // 转为数字
+                总分: Math.max(Number(scene.anquan) || 1, Number(scene.xiaolv) || 1, Number(scene.shushi) || 1), // 计算最大值,
                 拟人化情况备注: scene.nrhremark
-
             })));
-
+            // 设置单元格格式为数字
+            ['A', 'E', 'G', 'H', 'I', 'J'].forEach(col => {
+                for (let row = 2; row <= sceneData.length + 1; row++) {
+                    const cell = worksheet[`${col}${row}`];
+                    if (cell) {
+                        cell.t = 'n'; // 设置单元格类型为数字
+                    }
+                }
+            });
+            // 设置开始时间和结束时间为时间格式
+            ['B', 'C'].forEach(col => {
+                for (let row = 2; row <= sceneData.length + 1; row++) {
+                    const cell = worksheet[`${col}${row}`];
+                    if (cell) {
+                        cell.z = 'hh:mm:ss'; // 设置单元格格式为时间
+                    }
+                }
+            });
+            // 设置 F 和 K 列为文本格式
+            ['D', 'F', 'K'].forEach(col => {
+                for (let row = 2; row <= sceneData.length + 1; row++) {
+                    const cell = worksheet[`${col}${row}`];
+                    if (cell) {
+                        cell.t = 's'; // 设置单元格类型为文本
+                    }
+                }
+            });
             // 创建工作簿
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, '校验数据');
