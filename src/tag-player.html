@@ -364,11 +364,14 @@
                 const difficultyTagInput = document.createElement('select');
                 difficultyTagInput.className = 'select';
 
-                const difficultyOptions = ['3', '2', '1'];
-                difficultyOptions.forEach(optionValue => {
+                const difficultyOptions = ['易', '中', '难'];
+                difficultyOptions.forEach((optionText, index) => {
                     const option = document.createElement('option');
-                    option.value = optionValue;
-                    option.textContent = optionValue;
+                    option.value = (index + 1).toString();
+                    option.textContent = optionText;
+                    if (optionText === '易') {
+                        option.selected = true;
+                    }
                     difficultyTagInput.appendChild(option);
                 });
 
