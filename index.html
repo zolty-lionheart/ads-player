@@ -141,6 +141,44 @@
             background: linear-gradient(45deg, #d36500, #d62464);
             box-shadow: 0 8px 25px rgba(253, 126, 20, 0.5);
         }
+        
+        /* 新增的Beta版本按钮样式 */
+        .button.beta {
+            position: relative;
+            overflow: hidden;
+            /* 条纹彩虹色背景 */
+            background: repeating-linear-gradient(
+                45deg,
+                #ff0000,
+                #ff0000 10px,
+                #ff8000 10px,
+                #ff8000 20px,
+                #ffff00 20px,
+                #ffff00 30px,
+                #00ff00 30px,
+                #00ff00 40px,
+                #0080ff 40px,
+                #0080ff 50px,
+                #8000ff 50px,
+                #8000ff 60px
+            );
+            color: black; /* 将文字颜色改为黑色以提高在彩虹背景上的可读性 */
+        }
+        
+        .button.beta::before {
+            content: "NEW";
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ffff00; /* 黄色 */
+            color: #000000; /* 黑色文字以提高可读性 */
+            font-size: 10px; /* 增大字体确保显示完整 */
+            font-weight: bold;
+            padding: 3px 5px; /* 增加内边距 */
+            transform: rotate(20deg);
+            transform-origin: center;
+            white-space: nowrap; /* 防止文字换行 */
+        }
     </style>
 </head>
 <body>
@@ -153,7 +191,8 @@
         <div class="button-container">
             <a href="src/tag-player.html" class="button">打标签界面</a>
             <a href="src/check-player.html" class="button check">校验界面</a>
-            <a href="src/multi-player.html" class="button multi">多视频界面Beta</a>
+            <a href="src/abnormal-player.html" class="button multi">异常校验界面</a>
+            <a href="src/multi-player.html" class="button beta">多视频界面Beta</a>
         </div>
     </div>
 </body>

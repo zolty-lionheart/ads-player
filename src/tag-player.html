@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tag player 🚀</title>
+    <script src="/js/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,7 +78,7 @@
 
         #listContainer li {
             padding: 2px;
-            font-size: 14px;
+            font-size: 10px;
             text-align: left;
             /* 左对齐文本 */
             background-color: #ffffff;
@@ -89,7 +90,7 @@
             background-color: #f0f0f0;
             /* 鼠标悬停时的高亮效果 */
         }
-
+        
         /* 按钮 */
         #buttonContainer {
             display: flex;
@@ -111,7 +112,7 @@
             /* 确保在最上层 */
         }
 
-        .button {
+        .controlbutton {
             width: 60px;
             height: 30px;
             max-height: 100%;
@@ -122,13 +123,11 @@
             border-radius: 5px;
             background-color: white;
             display: flex;
-            align-items: center;
-            /* 垂直居中 */
-            justify-content: center;
-            /* 水平居中 */
+            align-items: center;    /* 垂直居中 */
+            justify-content: center; /* 水平居中 */
         }
 
-        .button:hover {
+        .controlbutton:hover {
             background-color: #0056b3;
         }
 
@@ -157,8 +156,8 @@
             width: 80px;
             font-size: 12px;
         }
-
-        .timeline-item span {
+         
+        .timeline-item  span{
             padding: 5px;
             font-size: 12px;
             margin-right: 5px;
@@ -177,6 +176,20 @@
     <div class="main-container">
         <!-- 测试信息 -->
         <div id="infoContainer">
+            <label for="cityInput">城市:</label>
+            <input type="text" id="cityInput" placeholder="请输入城市">
+            <br>
+            <label for="carModelInput">车型:</label>
+            <input type="text" id="carModelInput" placeholder="请输入车型">
+            <br>
+            <label for="dateInput">日期:</label>
+            <input type="date" id="dateInput">
+            <br>
+            <label for="timePeriodInput">时段:</label>
+            <input type="text" id="timePeriodInput" placeholder="请输入时段">
+            <br>
+            <label for="routeInput">线路:</label>
+            <input type="text" id="routeInput" placeholder="请输入线路">
         </div>
         <!-- 视频容器 -->
         <div id="videoContainer">
@@ -246,47 +259,60 @@
             <div id="currentTimeDisplay" style="text-align: center; font-size: 16px; margin-top: 6px; color: #333;">
                 当前时间: 00:00:00
             </div>
-            <button id="addTimelineItemButton" class="button">➕</button>
-            <button id="importButton" class="button">📥</button>
-            <button id="rewindButton" class="button">⏪</button>
-            <button id="playAllButton" class="button">▶️</button>
-            <button id="pauseAllButton" class="button">⏸️</button>
-            <button id="fastForwardButton" class="button">⏩</button>
-            <button id="fastForward5Button" class="button">⏩5</button>
-            <button id="exportButton" class="button">📤</button>
+            <button id="addTimelineItemButton" class="controlbutton">➕</button>
+            <button id="importButton" class="controlbutton">📥</button>
+            <button id="rewindButton2" class="controlbutton">5⏮️</button>
+            <button id="rewindButton" class="controlbutton">⏪</button>
+            <button id="playButton" class="controlbutton">▶️</button>
+            <button id="fastForwardButton" class="controlbutton">⏩</button>
+            <button id="fastForwardButton2" class="controlbutton">⏭️5</button>
+            <button id="exportButton" class="controlbutton">📤</button>
         </div>
     </div>
-
     <script>
+        
         let currentPausedTime = 0;
         let timelineItemCounter = 0; // 初始化计数器，从 0 开始
 
         // 确保正确获取视频和时间显示元素
         // 定义一个函数，用于实时更新时间
         function updateCurrentTime() {
-            const video = document.querySelector('#videoContainer video');
-            const currentTimeDisplay = document.getElementById('currentTimeDisplay');
-            const currentTime = formatTime(video.currentTime); // 格式化当前时间
-            currentTimeDisplay.textContent = `当前时间: ${currentTime}`; // 更新显示内容
-            console.log(`当前时间: ${currentTime}`); // 控制台输出当前时间
+        const video = document.querySelector('#videoContainer video');
+        const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+        const currentTime = formatTime(video.currentTime); // 格式化当前时间
+        currentTimeDisplay.textContent = `当前时间: ${currentTime}`; // 更新显示内容
+        console.log(`当前时间: ${currentTime}`); // 控制台输出当前时间
+        const playButton =document.getElementById('playButton');
+        if (video.paused) {
+            playButton.textContent = '▶️';
+        } else {
+            playButton.textContent = '⏸️';
+        }
         }
 
         // 每秒更新一次时间
-        setInterval(updateCurrentTime, 200);
+        setInterval(updateCurrentTime, 100);
+
+        // 格式化时间为 MM:SS 格式
+        function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
 
         // 时间格式化函数
         function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-            const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-            return `${h}:${m}:${s}`;
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
         }
 
         // 视频导入
         document.getElementById('importButton').addEventListener('click', function () {
             document.getElementById('videoInput').click();
         });
-
+        
         document.getElementById('videoInput').addEventListener('change', function (event) {
             const files = event.target.files;
             const videoContainer = document.getElementById('videoContainer');
@@ -311,25 +337,13 @@
             }
         });
 
-        document.getElementById('playAllButton').addEventListener('click', function () {
-            const video = document.querySelector('#videoContainer video');
-            if (video) {
-                video.play();
-            }
-        });
-
-        document.getElementById('pauseAllButton').addEventListener('click', function () {
-            const video = document.querySelector('#videoContainer video');
-            if (video) {
-                video.pause();
-            }
-        });
-
         let isStartTimeSet = false;
         let lastStartTimeInput = null;
 
         document.getElementById('addTimelineItemButton').addEventListener('click', function () {
             const timelineItems = document.getElementById('timelineItems');
+            const video = document.querySelector('#videoContainer video');
+            const currentTime = formatTime(video.currentTime); // 格式化当前时间
 
             if (!isStartTimeSet) {
                 const timelineItem = document.createElement('div');
@@ -344,7 +358,7 @@
                 const startTimeInput = document.createElement('input');
                 startTimeInput.type = 'text';
                 startTimeInput.className = 'input';
-                startTimeInput.value = formatTime(currentPausedTime);
+                startTimeInput.value = currentTime;
                 startTimeInput.placeholder = '开始时间';
 
                 const endTimeInput = document.createElement('input');
@@ -364,27 +378,48 @@
                 const difficultyTagInput = document.createElement('select');
                 difficultyTagInput.className = 'select';
 
-                const difficultyOptions = ['易', '中', '难'];
+                // // 添加一个空选项作为占位（未选中状态）
+                // const placeholderOption = document.createElement('option');
+                // placeholderOption.value = ''; // 空值
+                // placeholderOption.textContent = '';
+                // placeholderOption.disabled = true; // 禁止选中
+                // placeholderOption.selected = true; // 默认选中（但不可操作）
+                // difficultyTagInput.appendChild(placeholderOption);
+
+                // 修改难度选项显示：将1,2,3改为难,中,易
+                const difficultyOptions = ['难', '中', '易'];
+                const difficultyValues = ['1', '2', '3'];
                 difficultyOptions.forEach((optionText, index) => {
                     const option = document.createElement('option');
-                    option.value = (index + 1).toString();
+                    option.value = difficultyValues[index];
                     option.textContent = optionText;
+                    // 设置默认选中"易"（即索引为2的选项）
                     if (optionText === '易') {
                         option.selected = true;
                     }
                     difficultyTagInput.appendChild(option);
                 });
 
+                const remarkTagInput = document.createElement('input');
+                remarkTagInput.type = 'text';
+                remarkTagInput.placeholder = '描述';
+
                 const anquanTagLabel = document.createElement('span');
                 anquanTagLabel.textContent = '安全: ';
                 anquanTagLabel.className = 'label';
                 const anquanTagInput = document.createElement('select');
                 anquanTagInput.className = 'select';
-                const anquanOptions = ['1', '2', '3'];
-                anquanOptions.forEach(optionValue => {
+                // 修改安全选项显示：将1,2,3改为好,中,差
+                const anquanOptions = ['', '好', '中', '差'];
+                const anquanValues = ['', '1', '2', '3'];
+                anquanOptions.forEach((optionText, index) => {
                     const option = document.createElement('option');
-                    option.value = optionValue;
-                    option.textContent = optionValue;
+                    option.value = anquanValues[index];
+                    option.textContent = optionText;
+                    // 设置默认选中"好"
+                    if (optionText === '好') {
+                        option.selected = true;
+                    }
                     anquanTagInput.appendChild(option);
                 });
 
@@ -393,11 +428,17 @@
                 xiaolvTagLabel.className = 'label';
                 const xiaolvTagInput = document.createElement('select');
                 xiaolvTagInput.className = 'select';
-                const xiaolvOptions = ['1', '2', '3'];
-                xiaolvOptions.forEach(optionValue => {
+                // 修改效率选项显示：将1,2,3改为好,中,差
+                const xiaolvOptions = ['', '好', '中', '差'];
+                const xiaolvValues = ['', '1', '2', '3'];
+                xiaolvOptions.forEach((optionText, index) => {
                     const option = document.createElement('option');
-                    option.value = optionValue;
-                    option.textContent = optionValue;
+                    option.value = xiaolvValues[index];
+                    option.textContent = optionText;
+                    // 设置默认选中"好"
+                    if (optionText === '好') {
+                        option.selected = true;
+                    }
                     xiaolvTagInput.appendChild(option);
                 });
 
@@ -406,58 +447,76 @@
                 shushiTagLabel.className = 'label';
                 const shushiTagInput = document.createElement('select');
                 shushiTagInput.className = 'select';
-                const shushiOptions = ['1', '2', '3'];
-                shushiOptions.forEach(optionValue => {
+                // 修改舒适选项显示：将1,2,3改为好,中,查
+                const shushiOptions = ['', '好', '中', '查'];
+                const shushiValues = ['', '1', '2', '3'];
+                shushiOptions.forEach((optionText, index) => {
                     const option = document.createElement('option');
-                    option.value = optionValue;
-                    option.textContent = optionValue;
+                    option.value = shushiValues[index];
+                    option.textContent = optionText;
+                    // 设置默认选中"好"
+                    if (optionText === '好') {
+                        option.selected = true;
+                    }
                     shushiTagInput.appendChild(option);
                 });
 
-                const remarkTagInput = document.createElement('input');
-                remarkTagInput.type = 'text';
-                remarkTagInput.placeholder = '描述';
+                const nrhremarkTagInput = document.createElement('input');
+                nrhremarkTagInput.type = 'text';
+                nrhremarkTagInput.placeholder = '拟人化描述';
 
                 // 修改创建元素的代码，给每个输入框/下拉框添加唯一标识
                 startTimeInput.setAttribute('data-role', 'start-time');
                 endTimeInput.setAttribute('data-role', 'end-time');
                 sceneTagInput.setAttribute('data-role', 'scene-tag');
                 difficultyTagInput.setAttribute('data-role', 'difficulty');
+                remarkTagInput.setAttribute('data-role', 'remark');
                 anquanTagInput.setAttribute('data-role', 'anquan');
                 xiaolvTagInput.setAttribute('data-role', 'xiaolv');
                 shushiTagInput.setAttribute('data-role', 'shushi');
-                remarkTagInput.setAttribute('data-role', 'remark');
+                nrhremarkTagInput.setAttribute('data-role', 'nrhremark');
 
                 // 将编号和输入框添加到 timelineItem
-
+                
                 timelineItem.appendChild(startTimeInput);
                 timelineItem.appendChild(endTimeInput);
                 timelineItem.appendChild(sceneTagInput);
                 timelineItem.appendChild(difficultyLabel);
                 timelineItem.appendChild(difficultyTagInput);
+                timelineItem.appendChild(remarkTagInput);
                 timelineItem.appendChild(anquanTagLabel);
                 timelineItem.appendChild(anquanTagInput);
                 timelineItem.appendChild(xiaolvTagLabel);
                 timelineItem.appendChild(xiaolvTagInput);
                 timelineItem.appendChild(shushiTagLabel);
                 timelineItem.appendChild(shushiTagInput);
-                timelineItem.appendChild(remarkTagInput);
                 timelineItems.appendChild(timelineItem);
+                timelineItem.appendChild(nrhremarkTagInput);
 
                 // 自动滚动到新添加的元素
-                timelineItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                timelineItem.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
                 isStartTimeSet = true;
                 lastStartTimeInput = endTimeInput;
 
                 timelineItemCounter++; // 增加计数器
             } else {
-                lastStartTimeInput.value = formatTime(currentPausedTime);
+                lastStartTimeInput.value = currentTime;
                 isStartTimeSet = false;
                 lastStartTimeInput = null;
             }
         });
 
+        // 播放/暂停
+        document.getElementById('playButton').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video.paused) {
+                video.play();
+            }
+            else {
+                video.pause();
+            }
+        });
         // 快进
         document.getElementById('fastForwardButton').addEventListener('click', function () {
             const video = document.querySelector('#videoContainer video');
@@ -465,62 +524,90 @@
                 video.currentTime += 1; // 快进1秒
             }
         });
-
-        // 快进5秒
-        document.getElementById('fastForward5Button').addEventListener('click', function () {
+        document.getElementById('fastForwardButton2').addEventListener('click', function () {
             const video = document.querySelector('#videoContainer video');
             if (video) {
-                video.currentTime += 5; // 快进1秒
+                video.currentTime += 5; // 快进5秒
             }
         });
-
-        // 后退
+         // 后退
         document.getElementById('rewindButton').addEventListener('click', function () {
             const video = document.querySelector('#videoContainer video');
             if (video) {
                 video.currentTime -= 1; // 后退1秒
             }
         });
+        document.getElementById('rewindButton2').addEventListener('click', function () {
+            const video = document.querySelector('#videoContainer video');
+            if (video) {
+                video.currentTime -= 5; // 后退5秒
+            }
+        });
 
+        // 修改导出功能，动态生成文件名
         document.getElementById('exportButton').addEventListener('click', function () {
             const timelineItems = document.querySelectorAll('.timeline-item');
             const timelineData = [];
 
+            // 收集数据
             timelineItems.forEach((item, index) => {
                 const startTime = item.querySelector('[data-role="start-time"]').value;
                 const endTime = item.querySelector('[data-role="end-time"]').value;
                 const sceneTag = item.querySelector('[data-role="scene-tag"]').value;
-                const difficultyTag = item.querySelector('[data-role="difficulty"]').value;
+                // 修改难度值显示：将1,2,3转换为易,中,难
+                const difficultyElement = item.querySelector('[data-role="difficulty"]');
+                let difficultyTag = difficultyElement.value;
+                if (difficultyTag === '1') {
+                    difficultyTag = '难';
+                } else if (difficultyTag === '2') {
+                    difficultyTag = '中';
+                } else if (difficultyTag === '3') {
+                    difficultyTag = '易';
+                }
+                const remarkTag = item.querySelector('[data-role="remark"]').value;
                 const anquanTag = item.querySelector('[data-role="anquan"]').value;
                 const xiaolvTag = item.querySelector('[data-role="xiaolv"]').value;
                 const shushiTag = item.querySelector('[data-role="shushi"]').value;
-                const remarkTag = item.querySelector('[data-role="remark"]').value;
-                timelineData.push({
-                    number: index, // 编号从 0 开始
+                const nrhremarkTag = item.querySelector('[data-role="nrhremark"]').value;
+                timelineData.push([
+                    index, // 编号从 0 开始
                     startTime,
                     endTime,
                     sceneTag,
                     difficultyTag,
+                    remarkTag,
                     anquanTag,
                     xiaolvTag,
                     shushiTag,
-                    remarkTag
-                });
+                    nrhremarkTag
+                ]);
             });
 
-            let csvContent = "\uFEFF编号,开始时间,结束时间,场景标签,场景难度,安全,效率,舒适,描述\n";
-            timelineData.forEach(row => {
-                csvContent += `${row.number},${row.startTime},${row.endTime},${row.sceneTag},${row.difficultyTag},${row.anquanTag},${row.xiaolvTag},${row.shushiTag},${row.remarkTag}\n`;
-            });
+            // 添加表头
+            const header = ["编号", "开始时间", "结束时间", "场景标签", "场景难度", "描述", "安全", "效率", "舒适", "拟人化描述"];
+            timelineData.unshift(header);
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const fileName = prompt("请输入文件名（不需要扩展名）", "timeline") || "timeline";
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${fileName}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            // 创建工作簿和工作表
+            const worksheet = XLSX.utils.aoa_to_sheet(timelineData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Timeline");
+
+            // 获取输入框的值
+            const city = document.getElementById('cityInput').value || "城市";
+            const carModel = document.getElementById('carModelInput').value || "车型";
+            let date = document.getElementById('dateInput').value || "日期";
+            const timePeriod = document.getElementById('timePeriodInput').value || "时段";
+            const route = document.getElementById('routeInput').value || "线路";
+
+            // 将日期格式化为 YYYYMMDD
+            if (date !== "日期") {
+                date = date.replace(/-/g, ""); // 去掉日期中的 "-"
+            }
+            // 动态生成文件名
+            const fileName = `${city}_${carModel}_${date}_${timePeriod}_${route}.xlsx`;
+
+            // 导出为文件
+            XLSX.writeFile(workbook, fileName);
         });
     </script>
 </body>

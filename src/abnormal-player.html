@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>场景校对</title>
-    <script src="/js/xlsx.full.min.js"></script>
+    <title>异常数据复查</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,14 +48,6 @@
             padding: 5px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .file-input {
-            width: 500px;
-        }
-        /* 添加拖拽区域样式 */
-        .file-input.dragover {
-            border: 2px dashed #3498db !important;
-            background-color: #e8f4fc !important;
-        }
         .status {
             display: flex;
             padding: 10px;
@@ -91,7 +83,7 @@
             align-items: center;
         }
         .data-panel {
-            width: 40%;
+            width: 50%;
             background-color: white;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -127,6 +119,9 @@
             border: 1px solid #ddd;
             padding: 3px 3px;
             text-align: left;
+            word-wrap: break-word;
+            word-break: break-all;
+            white-space: normal;
         }
         th {
             background-color: #f2f2f2;
@@ -176,7 +171,9 @@
         #buttonContainer {
             display: flex;
             justify-content: center;
+            /* 固定位置 */
             bottom: 0;
+            /* 锁定到页面底部 */
             left: 0;
             height: 24px;
             max-height: 10%;
@@ -210,8 +207,8 @@
             cursor: pointer;
             background-color: white;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: center;    /* 垂直居中 */
+            justify-content: center; /* 水平居中 */
         }
         button {
             padding: 5px 10px;
@@ -243,18 +240,25 @@
 </head>
 <body>
     <div class="header">
-        <h1>汇总用改版</h1>
+        <h1>异常数据复查</h1>
     </div>
     
     <div class="controls">
         <div class="control-group">
             <label for="excelFile">切片文件:</label>
-            <input type="file" id="excelFile" accept=".xlsx, .xls" class="file-input" />
+            <input type="file" id="excelFile" accept=".xlsx, .xls" />
         </div>
         <div class="control-group">
             <label for="videoFile">视频文件:</label>
-            <input type="file" id="videoFile" accept="video/*" class="file-input" />
+            <input type="file" id="videoFile" accept="video/*" />
         </div>
+        <!-- <div class="control-group">
+            <label for="nrhoption">导入拟人化</label>
+            <input type="radio" id="optionNo" name="importData" value="no" >
+            <label for="optionNoNo">否</label>
+            <input type="radio" id="optionYes" name="importData" value="yes" checked>
+            <label for="optionYes">是</label>
+        </div> -->
         <button id="exportButton">导出文件</button>
         <div class="status" id="status">
             请加载切片文件
@@ -273,19 +277,20 @@
                 <table id="dataTable">
                     <thead>
                         <tr>
-                            <th style="width: 6%;">编号</th>
-                            <th style="width: 12%;">开始时间</th>
-                            <th style="width: 12%;">结束时间</th>
-                            <th style="width: 12%;">场景标签</th>
-                            <th style="width: 6%;">难度</th>
-                            <th style="width: 17%;">异常情况备注</th>
-                            <th style="width: 6%;">安全</th>
-                            <th style="width: 6%;">效率</th>
-                            <th style="width: 6%;">舒适</th>
-                            <th style="width: 17%;">拟人化备注</th>
+                            <th style="width: 16%;">线路名称</th>
+                            <th style="width: 8%;">车型</th>
+                            <th style="width: 5%;">编号</th>
+                            <th style="width: 10%;">视频名称</th>
+                            <th style="width: 7%;">开始时间</th>
+                            <th style="width: 7%;">结束时间</th>
+                            <th style="width: 5%;">标签</th>
+                            <th style="width: 10%;">接管类型</th>
+                            <th style="width: 16%;">描述与原因</th>
+                            <th style="width: 16%;">复查意见</th>
                         </tr>
                     </thead>
                     <tbody id="dataBody">
+                        <!-- 数据将通过JavaScript动态加载 -->
                     </tbody>
                 </table>
             </div>
@@ -296,6 +301,7 @@
                 视频播放
             </div>
             <div class="video-container">
+                <!-- <div class="current-time" id="currentTime">00:00:00</div> -->
                 <video id="videoPlayer" controls>
                     <source src="" type="video/mp4">
                     您的浏览器不支持视频播放
@@ -312,6 +318,7 @@
     </div>
 
     <script>
+        // 获取DOM元素
         const excelFileInput = document.getElementById('excelFile');
         const videoFileInput = document.getElementById('videoFile');
         const videoPlayer = document.getElementById('videoPlayer');
@@ -322,17 +329,20 @@
         const currentLable = document.getElementById('currentLabel');
         const playButton =document.getElementById('playButton');
         
+        // 存储Excel数据
         let sceneData = [];
         let highlightTimer = null;
         let lastHighlightedRow = null;
-        let sceneCounter = 0;
+        let currentSceneIndex = -1
         
+        // 监听Excel文件选择
         excelFileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
            
+            // 清空原来的 sceneData 数据
             sceneData = [];
-            dataBody.innerHTML = '';
+            dataBody.innerHTML = ''; // 清空表格内容
             
             statusElement.textContent = `正在加载场景数据: ${file.name}...`;
             
@@ -342,11 +352,14 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                     
+                    // 获取第一个工作表
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     
+                    // 转换为JSON
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
                     
+                    // 处理数据
                     processSceneData(jsonData);
                     
                     statusElement.textContent = `已加载 ${sceneData.length} 个场景数据`;
@@ -358,30 +371,7 @@
             reader.readAsArrayBuffer(file);
         });
         
-        // 添加拖拽事件监听器到Excel文件输入框
-        excelFileInput.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-        
-        excelFileInput.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-        
-        excelFileInput.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                // 创建一个事件来触发文件选择
-                const event = new Event('change', { bubbles: true });
-                this.files = files;
-                this.dispatchEvent(event);
-            }
-        });
-        
+        // 监听视频文件选择
         videoFileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -401,34 +391,13 @@
             };
         });
         
-        // 添加拖拽事件监听器到视频文件输入框
-        videoFileInput.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-        
-        videoFileInput.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-        
-        videoFileInput.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                // 创建一个事件来触发文件选择
-                const event = new Event('change', { bubbles: true });
-                this.files = files;
-                this.dispatchEvent(event);
-            }
-        });
-        
+        // 设置视频时间跟踪
         function setupVideoTimeTracking() {
+            // 清除之前的定时器
             if (highlightTimer) {
                 clearInterval(highlightTimer);
             }
+            // 更新当前时间显示
             videoPlayer.ontimeupdate = function() {
                 const currentTime = formatTime(videoPlayer.currentTime);
                 currentTimeDisplay.textContent = `当前时间: ${currentTime}`;
@@ -438,32 +407,38 @@
                     playButton.textContent = '⏸️';
                 }
             };
+            // 每秒检查一次是否需要高亮场景
             highlightTimer = setInterval(function() {
                 checkCurrentSceneHighlight();
-            }, 1000);
+            }, 500);
         }
         
+        // 检查并高亮当前场景
         function checkCurrentSceneHighlight() {
-            if (!videoPlayer.src || sceneData.length === 0) return;
+            // if (!videoPlayer.src || sceneData.length === 0) return;
             
-            const currentTime = videoPlayer.currentTime;
-            let currentSceneIndex = -1;
+            // const currentTime = videoPlayer.currentTime;
+            // let currentSceneIndex = -1;
             
-            for (let i = 0; i < sceneData.length; i++) {
-                const scene = sceneData[i];
-                const startTime = convertToSeconds(formatExcelTime(scene.startTime));
-                const endTime = convertToSeconds(formatExcelTime(scene.endTime));
+            // // 查找当前时间所在的场景
+            // for (let i = 0; i < sceneData.length; i++) {
+            //     const scene = sceneData[i];
+            //     const startTime = convertToSeconds(formatExcelTime(scene.startTime));
+            //     const endTime = convertToSeconds(formatExcelTime(scene.endTime));
                 
-                if (currentTime >= startTime && currentTime <= endTime) {
-                    currentSceneIndex = i;
-                    break;
-                }
-            }
+            //     if (currentTime >= startTime && currentTime <= endTime) {
+            //         currentSceneIndex = i;
+            //         break;
+            //     }
+            // }
             
+            // 更新高亮状态
             updateHighlight(currentSceneIndex);
         }
         
+        // 更新高亮行
         function updateHighlight(rowIndex) {
+            // 清除之前的高亮
             if (lastHighlightedRow !== null) {
                 const rows = document.querySelectorAll('#dataBody tr');
                 if (lastHighlightedRow >= 0 && lastHighlightedRow < rows.length) {
@@ -471,13 +446,16 @@
                 }
             }
 
+            // 添加新的高亮
             if (rowIndex >= 0) {
                 const rows = document.querySelectorAll('#dataBody tr');
                 if (rowIndex < rows.length) {
                     const currentRow = rows[rowIndex];
                     currentRow.classList.add('highlight');
 
+                    // 获取当前行的 labelInput
                     const labelInput = currentRow.querySelector('textarea');
+                    console.log(`当前行的标签: ${sceneData[rowIndex].label}`);
                     if (sceneData[rowIndex].label) {
                         const labelMapping = {
                             1: "左转-无博弈",
@@ -528,10 +506,14 @@
                             46: "复杂狭窄巷道通行"
                         };
 
+                        // 替换 labelInput 的内容
                         const updateLabel = ((String(sceneData[rowIndex].label)).replace(/ /g, '，') || '').replace(/\b\d+\b/g, match => labelMapping[match] || match);
-                        currentLable.textContent = `${updateLabel}`;
+                        const difficulty = sceneData[rowIndex].difficulty;
+                        console.log(`当前难度：${difficulty} 当前标签: ${updateLabel}`);
+                        currentLable.textContent = `难度:${difficulty} ${updateLabel}`;
                     }
 
+                    // 如果行不在可视区域内，则滚动到该行
                     const rowRect = currentRow.getBoundingClientRect();
                     const containerRect = document.getElementById('dataContainer').getBoundingClientRect();
 
@@ -546,21 +528,24 @@
             lastHighlightedRow = rowIndex;
         }
 
+        // 处理场景数据
         function processSceneData(data) {
             sceneData = [];
-            const nrhOption = false;
             data.forEach(row => {
+                // 检查必需字段是否存在
+                // if (row['编号'] === undefined && row['切分场景编号'] === undefined) {
+                //     return; // 跳过不完整的数据行
+                // }
                 sceneData.push({
-                    number: '切分场景编号' in row ? row['切分场景编号'] : row['编号'],
-                    startTime: '场景开始时间戳' in row ? row['场景开始时间戳'] : row['开始时间'] || '',
-                    endTime: '场景结束时间戳' in row ? row['场景结束时间戳'] : row['结束时间'] || '',
-                    label: '场景标签号' in row ? row['场景标签号'] : row['场景标签'] || '',
-                    difficulty: '场景难易程度' in row ? row['场景难易程度'] : ('场景难度' in row ? row['场景难度'] : row['难度'] || ''),
-                    remark: '异常情况备注' in row ? row['异常情况备注'] : row['描述'] || '',
-                    anquan: nrhOption ? '' : ('安全性得分' in row ? row['安全性得分'] : ('安全' in row ? row['安全'] : '')),
-                    xiaolv: nrhOption ? '' : ('效率性得分' in row ? row['效率性得分'] : ('效率' in row ? row['效率'] : '')),
-                    shushi: nrhOption ? '' : ('舒适性得分' in row ? row['舒适性得分'] : ('舒适' in row ? row['舒适'] : '')),
-                    nrhremark: nrhOption ? '' : ('拟人化异常情况备注' in row ? row['拟人化异常情况备注'] : ('拟人化情况备注' in row ? row['拟人化情况备注'] : ('拟人化描述' in row ? row['拟人化描述'] : '')))
+                    test: '线路名称' in row ? row['线路名称'] : row['线路'] || '',
+                    car: row['车型'] || '',
+                    number: '核查编号' in row ? row['核查编号'] : row['编号'],
+                    video: row['视频名称'] || '',
+                    startTime: row['接管时刻'] || '',
+                    endTime: row['恢复时刻'] || '',
+                    takeover: row['接管类型/拟人化程度'] || '',
+                    label: '场景标签号' in row ? row['场景标签号'] :row['场景标签'] || '',
+                    remark: '描述与原因' in row ? row['描述与原因'] : row['描述'] || ''
                 });
             });
 
@@ -570,7 +555,7 @@
         function addSceneData() {
 
         }
-        
+        // 渲染场景数据表格
         function renderSceneData() {
             dataBody.innerHTML = '';
             
@@ -578,150 +563,166 @@
                 const row = document.createElement('tr');
                 row.dataset.index = index;
 
+                // 测试名称
+                const testCell = document.createElement('td');
+                testCell.textContent = scene.test;
+                testCell.style.textAlign = 'left';
+
+                // 车型
+                const carCell = document.createElement('td');
+                carCell.textContent = scene.car;
+                carCell.style.textAlign = 'center';
+
+                // 核查编号
                 const numberCell = document.createElement('td');
                 numberCell.textContent = scene.number;
                 numberCell.style.textAlign = 'center';
-                sceneCounter = scene.number;
 
+                // 视频名称
+                const videoCell = document.createElement('td');
+                videoCell.textContent = scene.video;
+                videoCell.style.textAlign = 'center';
+
+                // 开始时间
                 const startCell = document.createElement('td');
                 startCell.className = 'time-cell';
                 startCell.textContent = formatExcelTime(scene.startTime);
                 startCell.dataset.time = convertToSeconds(startCell.textContent);
                 startCell.title = "点击跳转到场景开始时间";
                 startCell.style.textAlign = 'center';
-                startCell.onclick = function() {
-                    jumpToVideoTime(this.dataset.time, index);
+                startCell.onclick = function () {
+                    locateSceneByTime(this.dataset.time, index);
                 };
 
+                // 结束时间
                 const endCell = document.createElement('td');
                 endCell.className = 'time-cell';
                 endCell.textContent = formatExcelTime(scene.endTime);
                 endCell.dataset.time = convertToSeconds(endCell.textContent);
                 endCell.title = "点击跳转到场景结束时间";
                 endCell.style.textAlign = 'center';
-                endCell.onclick = function() {
-                    jumpToVideoTime(this.dataset.time, index);
+                endCell.onclick = function () {
+                    locateSceneByTime(this.dataset.time, index);
                 };
 
+                // 场景标签
                 const labelCell = document.createElement('td');
-                const labelInput = document.createElement('input');
-                labelInput.type = 'text';
-                labelInput.value = scene.label;
-                labelInput.addEventListener('input', function () {
-                    sceneData[index].label = labelInput.value;
-                });
-                labelCell.appendChild(labelInput);
+                labelCell.textContent = scene.label;
+                labelCell.style.textAlign = 'center';
 
-                const difficultyCell = document.createElement('td');
-                const difficultyInput = document.createElement('input');
-                difficultyInput.type = 'text';
-                difficultyInput.value = scene.difficulty;
-                difficultyInput.addEventListener('input', function () {
-                    sceneData[index].difficulty = difficultyInput.value;
-                });
-                difficultyCell.appendChild(difficultyInput);
+                // 接管类型
+                const takeoverCell = document.createElement('td');
+                takeoverCell.textContent = scene.takeover;
+                takeoverCell.style.textAlign = 'center';
 
+                // 异常情况备注
                 const remarkCell = document.createElement('td');
-                const remarkInput = document.createElement('input');
-                remarkInput.type = 'text';
-                remarkInput.value = scene.remark;
-                remarkInput.style.textAlign = 'left';
-                remarkInput.addEventListener('input', function () {
-                    sceneData[index].remark = remarkInput.value;
-                });
-                remarkCell.appendChild(remarkInput);
+                remarkCell.textContent = scene.remark;
+                remarkCell.style.textAlign = 'left';
 
-                const anquanCell = document.createElement('td');
-                const anquanInput = document.createElement('input');
-                anquanInput.type = 'text';
-                anquanInput.value = scene.anquan;
-                anquanInput.addEventListener('input', function () {
-                    sceneData[index].anquan = anquanInput.value;
-                });
-                anquanCell.appendChild(anquanInput);
+                // 复查意见
+                const checkCell = document.createElement('td');
+                const checkInput = document.createElement('input');
+                checkInput.type = 'text';
+                checkInput.style.textAlign = 'left';
+                checkInput.onchange = function () {
+                    scene.check = this.value;
+                };
+                checkCell.appendChild(checkInput);
 
-                const xiaolvCell = document.createElement('td');
-                const xiaolvInput = document.createElement('input');
-                xiaolvInput.type = 'text';
-                xiaolvInput.value = scene.xiaolv;
-                xiaolvInput.addEventListener('input', function () {
-                    sceneData[index].xiaolv = xiaolvInput.value;
-                });
-                xiaolvCell.appendChild(xiaolvInput);
-
-                const shushiCell = document.createElement('td');
-                const shushiInput = document.createElement('input');
-                shushiInput.type = 'text';
-                shushiInput.value = scene.shushi;
-                shushiInput.addEventListener('input', function () {
-                    sceneData[index].shushi = shushiInput.value;
-                });
-                shushiCell.appendChild(shushiInput);
-
-                const nrhremarkCell = document.createElement('td');
-                const nrhremarkInput = document.createElement('input');
-                nrhremarkInput.type = 'text';
-                nrhremarkInput.value = scene.nrhremark;
-                nrhremarkInput.style.textAlign = 'left';
-                nrhremarkInput.addEventListener('input', function () {
-                    sceneData[index].nrhremark = nrhremarkInput.value;
-                });
-                nrhremarkCell.appendChild(nrhremarkInput);
-
+                // 添加到行
+                row.appendChild(testCell);
+                row.appendChild(carCell);
                 row.appendChild(numberCell);
+                row.appendChild(videoCell);
                 row.appendChild(startCell);
                 row.appendChild(endCell);
                 row.appendChild(labelCell);
-                row.appendChild(difficultyCell);
+                row.appendChild(takeoverCell);
                 row.appendChild(remarkCell);
-                row.appendChild(anquanCell);
-                row.appendChild(xiaolvCell);
-                row.appendChild(shushiCell);
-                row.appendChild(nrhremarkCell);
+                row.appendChild(checkCell);
 
+                // 添加到表格
                 dataBody.appendChild(row);
             });
         }
+
+        // 新增函数：根据时间戳定位场景
+        function locateSceneByTime(timeInSeconds, rowIndex) {
+            if (!videoPlayer.src) {
+                videoStatusElement.textContent = "请先加载视频文件";
+                return;
+            }
+
+            // 跳转视频时间
+            videoPlayer.currentTime = parseFloat(timeInSeconds);
+            videoPlayer.play();
+
+            // 更新状态
+            videoStatusElement.textContent = `跳转到: ${formatTime(timeInSeconds)}`;
+
+            // 高亮当前行
+            currentSceneIndex = rowIndex;
+        }
         
+        // 格式化Excel时间（支持日期对象、数字格式和字符串格式）
         function formatExcelTime(time) {
             if (time instanceof Date && isNaN(time.getTime())) {
-            const rawValue = time.valueOf();
+            // 如果是无效的 Date 对象，尝试将其视为 Excel 时间格式的数字
+            const rawValue = time.valueOf(); // 获取原始值
+            //const rawValue = time.v
             const numericValue = parseFloat(rawValue)
-            const baseDate = new Date(Date.UTC(1899, 11, 30));
-            const excelDate = new Date(baseDate.getTime() + numericValue * 86400 * 1000);
+            const baseDate = new Date(Date.UTC(1899, 11, 30)); // Excel 时间基准日期（UTC 时间）
+            const excelDate = new Date(baseDate.getTime() + numericValue * 86400 * 1000); // 转换为毫秒
             const hours = excelDate.getUTCHours().toString().padStart(2, '0');
             const minutes = excelDate.getUTCMinutes().toString().padStart(2, '0');
             const seconds = excelDate.getUTCSeconds().toString().padStart(2, '0');
+            console.log(`时间格式为: datenumber ${time} ${hours}:${minutes}:${seconds}`);
             return `${hours}:${minutes}:${seconds}`;
             } else if (time instanceof Date) {
+                // 处理日期对象
                 const hours = time.getHours().toString().padStart(2, '0');
                 const minutes = time.getMinutes().toString().padStart(2, '0');
                 const seconds = time.getSeconds().toString().padStart(2, '0');
                 return `${hours}:${minutes}:${seconds}`;
             } else if (typeof time === 'number') {
+                // 处理Excel数字时间格式（1 = 1天 = 24小时）
                 const totalSeconds = time * 86400;
                 const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
                 const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
                 const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
                 return `${hours}:${minutes}:${seconds}`;
             } else if (typeof time === 'string' && /^\d{1,2}:\d{2}:\d{2}$/.test(time)) {
+                // 处理字符串格式的时间（H:MM:SS 或 HH:MM:SS）
                 const parts = time.split(':');
                 if (parts[0].length === 1) {
+                    // 如果小时部分是单个数字，补齐为两位
                     parts[0] = parts[0].padStart(2, '0');
                 }
                 return parts.join(':');
             }
-            return time;
+            return time; // 如果不是时间格式，返回原始值
         }
         
+        // 将时间转换为秒数
+        // function convertToSeconds(time) {
+        //     if (time instanceof Date) {
+        //         return time.getHours() * 3600 + time.getMinutes() * 60 + time.getSeconds();
+        //     } else if (typeof time === 'number') {
+        //         return time * 86400; // Excel时间格式，1 = 24小时
+        //     }
+        //     return 0;
+        // }
+
         function convertToSeconds(timeString) {
             if (typeof timeString === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
                 const [hours, minutes, seconds] = timeString.split(':').map(Number);
                 return hours * 3600 + minutes * 60 + seconds;
             }
-            return 0;
+            return 0; // 如果格式不正确，返回0
         }
         
+        // 格式化时间为HH:MM:SS
         function formatTime(seconds) {
             const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -729,81 +730,94 @@
             return `${hours}:${minutes}:${secs}`;
         }
         
+        // 跳转到视频指定时间
         function jumpToVideoTime(timeInSeconds, rowIndex) {
             if (!videoPlayer.src) {
                 videoStatusElement.textContent = "请先加载视频文件";
                 return;
             }
             
+            // 跳转视频时间
             videoPlayer.currentTime = parseFloat(timeInSeconds);
             videoPlayer.play();
             
+            // 更新状态
             videoStatusElement.textContent = `跳转到: ${formatTime(timeInSeconds)}`;
             
+            // 高亮当前行
             updateHighlight(rowIndex);
         }
 
+        // 获取导出按钮
         const exportButton = document.getElementById('exportButton');
-        let loadedExcelFileName = '';
+        let loadedExcelFileName = ''; // 用于存储加载的Excel文件名
 
+        // 在加载Excel文件时，保存文件名
         excelFileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                loadedExcelFileName = file.name.split('.').slice(0, -1).join('.');
+                loadedExcelFileName = file.name.split('.').slice(0, -1).join('.'); // 去掉扩展名
             }
         });
 
+        // 导出按钮点击事件
         exportButton.addEventListener('click', function() {
             if (sceneData.length === 0) {
                 alert('没有可导出的场景数据！');
                 return;
             }
 
+            // 创建工作表
             const worksheet = XLSX.utils.json_to_sheet(sceneData.map(scene => ({
-                编号: Number(scene.number) || 0,
+                线路名称: scene.test,
+                车型: scene.car,
+                核查编号: scene.number,
+                视频名称: scene.video,
                 开始时间: scene.startTime,
                 结束时间: scene.endTime,
                 场景标签: scene.label,
-                难度: Number(scene.difficulty),
-                异常情况备注: scene.remark,
-                安全: Number(scene.anquan) || 1,
-                效率: Number(scene.xiaolv) || 1,
-                舒适: Number(scene.shushi) || 1,
-                总分: Math.max(Number(scene.anquan) || 1, Number(scene.xiaolv) || 1, Number(scene.shushi) || 1),
-                拟人化情况备注: scene.nrhremark
+                描述与原因: scene.remark,
+                复查意见: scene.check
             })));
-            ['A', 'E', 'G', 'H', 'I', 'J'].forEach(col => {
+            // 设置单元格格式为数字
+            ['C'].forEach(col => {
                 for (let row = 2; row <= sceneData.length + 1; row++) {
                     const cell = worksheet[`${col}${row}`];
                     if (cell) {
-                        cell.t = 'n';
+                        cell.t = 'n'; // 设置单元格类型为数字
                     }
                 }
             });
-            ['B', 'C'].forEach(col => {
+            // 设置开始时间和结束时间为时间格式
+            ['E', 'F'].forEach(col => {
                 for (let row = 2; row <= sceneData.length + 1; row++) {
                     const cell = worksheet[`${col}${row}`];
                     if (cell) {
-                        cell.z = 'hh:mm:ss';
+                        cell.z = 'hh:mm:ss'; // 设置单元格格式为时间
                     }
                 }
             });
-            ['D', 'F', 'K'].forEach(col => {
+            // 设置 F 和 K 列为文本格式
+            ['A', 'B', 'D', 'G', 'H', 'I'].forEach(col => {
                 for (let row = 2; row <= sceneData.length + 1; row++) {
                     const cell = worksheet[`${col}${row}`];
                     if (cell) {
-                        cell.t = 's';
+                        cell.t = 's'; // 设置单元格类型为文本
                     }
                 }
             });
+            // 创建工作簿
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, '校验数据');
 
-            const exportFileName = `${loadedExcelFileName || '场景数据'}_校验.xlsx`;
+            // 设置导出的文件名
+            const exportFileName = `${loadedExcelFileName || '场景数据'}_复查.xlsx`;
 
+            // 导出文件
             XLSX.writeFile(workbook, exportFileName);
         });
 
+        // 播放暂停
         document.getElementById('playButton').addEventListener('click', function () {
             if (videoPlayer.paused) {
                 videoPlayer.play();
@@ -812,16 +826,16 @@
                 videoPlayer.pause();
             }
         });
-        
+        // 快进
         document.getElementById('fastForwardButton').addEventListener('click', function () {
             if (videoPlayer) {
-                videoPlayer.currentTime += 1;
+                videoPlayer.currentTime += 1; // 快进1秒
             }
         });
-         
+         // 后退
         document.getElementById('rewindButton').addEventListener('click', function () {
             if (videoPlayer) {
-                videoPlayer.currentTime -= 1;
+                videoPlayer.currentTime -= 1; // 后退1秒
             }
         });
 
